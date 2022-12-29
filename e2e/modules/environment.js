@@ -120,6 +120,18 @@ const demoMattermostConfig = {
 
 const cmdOrCtrl = process.platform === 'darwin' ? 'command' : 'control';
 
+async function findMainWindow(app, depth = 10) {
+    const mainWindow = app?.windows().find((window) => window.url().includes('index'));
+    if (depth === 0) {
+        return mainWindow;
+    }
+    if (!mainWindow) {
+        await asyncSleep(500);
+        return findMainWindow(app, depth - 1);
+    }
+    return mainWindow;
+}
+
 module.exports = {
     sourceRootDir,
     configFilePath,
@@ -215,9 +227,8 @@ module.exports = {
         //     options.chromeDriverArgs.push('remote-debugging-port=9222');
         //}
         return electron.launch(options).then(async (app) => {
-            // Make sure the app has time to fully load and that the window is focused
-            await app.firstWindow();
-            const mainWindow = app.windows().find((window) => window.url().includes('index'));
+            // Make sure the app has time to fully load and that the window is focused);
+            const mainWindow = await findMainWindow(app);
             if (mainWindow) {
                 const browserWindow = await app.browserWindow(mainWindow);
                 await browserWindow.evaluate((win) => {
