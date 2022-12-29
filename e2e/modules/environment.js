@@ -216,13 +216,15 @@ module.exports = {
         //}
         return electron.launch(options).then(async (app) => {
             // Make sure the app has time to fully load and that the window is focused
-            await asyncSleep(1000);
+            await app.firstWindow();
             const mainWindow = app.windows().find((window) => window.url().includes('index'));
-            const browserWindow = await app.browserWindow(mainWindow);
-            await browserWindow.evaluate((win) => {
-                win.show();
-                return true;
-            });
+            if (mainWindow) {
+                const browserWindow = await app.browserWindow(mainWindow);
+                await browserWindow.evaluate((win) => {
+                    win.show();
+                    return true;
+                });
+            }
             return app;
         });
     },
